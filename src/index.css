@@ -1,0 +1,271 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary: #6366f1;
+  --primary-glow: rgba(99, 102, 241, 0.5);
+  --accent: #a855f7;
+  --bg-dark: #0f172a;
+  --card-bg: rgba(30, 41, 59, 0.95);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  font-family: 'Outfit', sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-dark);
+  background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.phone-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  height: 92vh;
+  max-height: 800px;
+  background: #000;
+  border-radius: 40px;
+  border: 8px solid #1e293b;
+  box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+}
+
+.phone-notch {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 35px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 100;
+}
+
+.app-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Dedicated Scanner Area */
+.scanner-area {
+  width: 100%;
+  height: 50%;
+  background: #000;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 4px solid #16a34a; /* Green divider */
+}
+
+.scanner-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scan-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.scan-frame.horizontal {
+  width: 85%;
+  height: 160px; /* Horizontal Rectangle */
+  border: 2px solid #4ade80;
+  border-radius: 15px;
+  background: rgba(74, 222, 128, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-bar.animating {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #4ade80;
+  box-shadow: 0 0 15px #4ade80;
+  animation: scanLoop 2s ease-in-out infinite;
+}
+
+@keyframes scanLoop {
+  0% { top: 10%; opacity: 0.2; }
+  50% { top: 90%; opacity: 1; }
+  100% { top: 10%; opacity: 0.2; }
+}
+
+.scan-guide {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: rgba(0,0,0,0.5);
+  padding: 5px 0;
+}
+
+/* UI Card Layer */
+.ui-layer {
+  flex: 1;
+  padding: 20px;
+  background: var(--bg-dark);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  z-index: 10;
+}
+
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 35px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+}
+
+.amount-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.amount-display span {
+  font-size: 1.8rem;
+  color: var(--text-muted);
+}
+
+.amount-input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 3rem;
+  font-weight: 700;
+  width: 160px;
+  text-align: center;
+  outline: none;
+}
+
+.main-btn {
+  width: 100%;
+  padding: 20px;
+  border-radius: 25px;
+  border: none;
+  background: linear-gradient(135deg, #818cf8, #c084fc);
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+  margin-bottom: 15px;
+}
+
+.main-btn:active {
+  transform: scale(0.97);
+}
+
+.secondary-btn {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  width: 100%;
+  padding: 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Status Views */
+.status-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.loader {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.manual-input-field {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: white;
+  margin-bottom: 12px;
+  text-align: center;
+  font-size: 1rem;
+  outline: none;
+}
+
+.manual-input-field:focus {
+  border-color: var(--primary);
+}
+
+.result-box {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 20px;
+  margin-top: 20px;
+  border: 1px solid var(--glass-border);
+  width: 100%;
+}
+
+.result-box .label {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.result-box .value {
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  word-break: break-all;
+  letter-spacing: 1px;
+}

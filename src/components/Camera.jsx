@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from '@zxing/library';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import '../App.css';
 
 const Camera = () => {
@@ -12,84 +12,69 @@ const Camera = () => {
   const [transactionStatus, setTransactionStatus] = useState(null);
   const [usedBarcodes, setUsedBarcodes] = useState(new Set());
   
-  const videoRef = useRef(null);
-  const controlsRef = useRef(null);
+  const scannerRef = useRef(null); // Container for html5-qrcode
+  const html5QrCodeRef = useRef(null);
   const fileInputRef = useRef(null);
   const isLockedRef = useRef(false);
 
   // Stop/Cleanup Logic
-  const stopScanner = () => {
-    if (controlsRef.current) {
+  const stopScanning = async () => {
+    if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
       try {
-        controlsRef.current.stop();
-        console.log("Scanner stopped");
-      } catch (e) {
-        console.warn("Scanner stop error:", e);
+        await html5QrCodeRef.current.stop();
+        console.log("Scanner Stopped.");
+      } catch (err) {
+        console.error("Scanner band karne me error hui: ", err);
       }
-      controlsRef.current = null;
     }
     setIsActive(false);
   };
 
-  // Advanced Scanner Setup
-  const startScanner = async () => {
+  // Start Scanning with html5-qrcode
+  const startScanning = async () => {
     setError(null);
     setScannedResult(null);
     setTransactionStatus(null);
     isLockedRef.current = false;
+    setIsActive(true);
     
     try {
-      console.log("Initializing high-performance 1D scanner...");
-      
-      const hints = new Map();
-      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-        BarcodeFormat.CODE_128,
-        BarcodeFormat.CODE_39,
-        BarcodeFormat.EAN_13,
-        BarcodeFormat.UPC_A,
-      ]);
+      if (!html5QrCodeRef.current) {
+        html5QrCodeRef.current = new Html5Qrcode("reader");
+      }
 
-      const codeReader = new BrowserMultiFormatReader(hints);
-      
-      const constraints = {
-        video: {
-          facingMode: "environment",
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        }
+      const config = {
+        fps: 20,
+        qrbox: { width: 300, height: 150 },
+        aspectRatio: 1.0,
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+        ],
       };
 
-      setIsActive(true);
-
-      // Start decoding
-      const controls = await codeReader.decodeFromConstraints(
-        constraints,
-        videoRef.current,
-        (res, err) => {
-          if (res && !isLockedRef.current) {
-            const scannedValue = res.getText();
-            console.log("Barcode detected:", scannedValue);
-            
-            // Immediate Lock & Stop
+      await html5QrCodeRef.current.start(
+        { facingMode: "environment" }, 
+        config,
+        (decodedText) => {
+          if (!isLockedRef.current) {
             isLockedRef.current = true;
-            stopScanner();
-            handleSuccess(scannedValue);
+            console.log("Scanned Data: ", decodedText);
+            stopScanning();
+            handleSuccess(decodedText);
           }
-          if (err && !(err.name === 'NotFoundException')) {
-            // Optional logging for debugging
-          }
+        },
+        (errorMessage) => {
+          // Failure or background scan processing errors
         }
       );
-      
-      controlsRef.current = controls;
-      console.log("1D Scanner active with 1080p target");
-
+      console.log("Scanner Started!");
     } catch (err) {
-      console.error("Scanner startup failed:", err);
-      let msg = err.message;
-      if (err.name === 'NotAllowedError') msg = "Camera access denied. Please allow camera permissions and use HTTPS.";
-      if (err.name === 'NotFoundError') msg = "No camera found on this device.";
-      setError(msg);
+      console.error("Kamera shuru karne me error hui: ", err);
+      setError(err.message || "Camera access failed");
       setIsActive(false);
     }
   };
@@ -147,18 +132,11 @@ const Camera = () => {
     const file = event.target.files[0];
     if (!file) return;
     setIsProcessing(true);
-    const imageUrl = URL.createObjectURL(file);
+    
     try {
-      const hints = new Map();
-      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-        BarcodeFormat.CODE_128,
-        BarcodeFormat.CODE_39,
-        BarcodeFormat.EAN_13,
-        BarcodeFormat.UPC_A,
-      ]);
-      const codeReader = new BrowserMultiFormatReader(hints);
-      const result = await codeReader.decodeFromImageUrl(imageUrl);
-      handleSuccess(result.getText());
+      const html5QrCode = new Html5Qrcode("reader");
+      const result = await html5QrCode.scanFile(file, true);
+      handleSuccess(result);
     } catch (e) {
       setError("No valid barcode found in image.");
       setIsProcessing(false);
@@ -166,7 +144,11 @@ const Camera = () => {
   };
 
   useEffect(() => {
-    return () => stopScanner();
+    return () => {
+      if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
+        html5QrCodeRef.current.stop();
+      }
+    };
   }, []);
 
   return (
@@ -175,7 +157,8 @@ const Camera = () => {
       
       <div className="app-wrapper">
         <div className="scanner-area">
-          <video ref={videoRef} className="scanner-video" playsInline autoPlay muted />
+          {/* html5-qrcode needs a div container */}
+          <div id="reader" style={{ width: '100%', height: '100%' }}></div>
           
           {isActive && (
             <div className="scan-overlay">
@@ -214,7 +197,7 @@ const Camera = () => {
                 
                 {!isActive ? (
                   <>
-                    <button onClick={startScanner} className="main-btn">
+                    <button onClick={startScanning} className="main-btn">
                       Scan Barcode
                     </button>
                     
@@ -238,7 +221,7 @@ const Camera = () => {
                     </button>
                   </>
                 ) : (
-                  <button onClick={stopScanner} className="main-btn" style={{ background: '#ef4444', boxShadow: '0 10px 25px rgba(239, 68, 68, 0.3)' }}>
+                  <button onClick={stopScanning} className="main-btn" style={{ background: '#ef4444', boxShadow: '0 10px 25px rgba(239, 68, 68, 0.3)' }}>
                     Cancel Scanning
                   </button>
                 )}

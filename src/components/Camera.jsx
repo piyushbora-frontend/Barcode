@@ -11,7 +11,7 @@ const Camera = () => {
   const [manualBarcode, setManualBarcode] = useState('');
   const [transactionStatus, setTransactionStatus] = useState(null);
   const [usedBarcodes, setUsedBarcodes] = useState(new Set());
-  
+
   const scannerRef = useRef(null); // Container for html5-qrcode
   const html5QrCodeRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -37,7 +37,7 @@ const Camera = () => {
     setTransactionStatus(null);
     isLockedRef.current = false;
     setIsActive(true);
-    
+
     try {
       if (!html5QrCodeRef.current) {
         html5QrCodeRef.current = new Html5Qrcode("reader");
@@ -57,7 +57,7 @@ const Camera = () => {
       };
 
       await html5QrCodeRef.current.start(
-        { facingMode: "environment" }, 
+        { facingMode: "environment" },
         config,
         (decodedText) => {
           if (!isLockedRef.current) {
@@ -105,14 +105,14 @@ const Camera = () => {
       const authResponse = await fetch('/api/authorize', { method: 'POST' });
       if (!authResponse.ok) throw new Error("Auth failed (500)");
       const authData = await authResponse.json();
-      
+
       setTransactionStatus("Processing...");
       const gdRes = await fetch('/api/greendot-auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount, barcode, token: authData.access_token })
       });
-      
+
       const resText = await gdRes.text();
       if (resText.includes('<ns2:ResponseCode>00</ns2:ResponseCode>') || resText.includes('<ResponseCode>00</ResponseCode>')) {
         setTransactionStatus("Approved!");
@@ -132,7 +132,7 @@ const Camera = () => {
     const file = event.target.files[0];
     if (!file) return;
     setIsProcessing(true);
-    
+
     try {
       const html5QrCode = new Html5Qrcode("reader");
       const result = await html5QrCode.scanFile(file, true);
@@ -154,12 +154,12 @@ const Camera = () => {
   return (
     <div className="phone-container">
       <div className="phone-notch"></div>
-      
+
       <div className="app-wrapper">
         <div className="scanner-area">
           {/* html5-qrcode needs a div container */}
           <div id="reader" style={{ width: '100%', height: '100%' }}></div>
-          
+
           {isActive && (
             <div className="scan-overlay">
               <div className="scan-frame horizontal">
@@ -187,37 +187,20 @@ const Camera = () => {
               <>
                 <div className="amount-display">
                   <span>$</span>
-                  <input 
+                  <input
                     className="amount-input"
-                    type="number" 
-                    value={amount} 
-                    onChange={(e) => setAmount(e.target.value)} 
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
                   />
                 </div>
-                
+
                 {!isActive ? (
                   <>
                     <button onClick={startScanning} className="main-btn">
                       Scan Barcode
-                    </button>
-                    
-                    <div style={{ margin: '10px 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>— OR —</div>
-                    
-                    <form onSubmit={handleManualSubmit} style={{ width: '100%' }}>
-                      <input 
-                        type="text" 
-                        placeholder="Manual Barcode Entry"
-                        value={manualBarcode}
-                        onChange={(e) => setManualBarcode(e.target.value)}
-                        className="manual-input-field"
-                      />
-                      <button type="submit" className="secondary-btn" style={{ width: '100%', marginBottom: '10px' }}>
-                        Submit Manual
-                      </button>
-                    </form>
 
-                    <button onClick={() => fileInputRef.current.click()} className="secondary-btn" style={{ border: 'none', padding: '10px' }}>
-                      Upload from Gallery
+                      {/* Upload from Gallery */}
                     </button>
                   </>
                 ) : (
@@ -270,12 +253,12 @@ const Camera = () => {
         </div>
       </div>
 
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleFileUpload} 
-        accept="image/*" 
-        style={{ display: 'none' }} 
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileUpload}
+        accept="image/*"
+        style={{ display: 'none' }}
       />
     </div>
   );
